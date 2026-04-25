@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JARVIS">
+<meta name="theme-color" content="#0a0000">
+<title>JARVIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#ffc200;--gold2:#ff9500;--red:#cc1a00;--red2:#ff3a1a;
+  --darker:#050000;--glow-gold:0 0 20px rgba(255,194,0,.5),0 0 60px rgba(255,149,0,.2);
+  --text:#ffe8b0;--dim:rgba(255,220,150,.45);--border:rgba(255,194,0,.18);
+  --green:#00ff88;--blue:#00cfff;--purple:#c044ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{background:var(--darker);color:var(--text);font-family:'Exo 2',sans-serif;position:relative;overflow:hidden}
+
+/* BG */
+.bg-layer{position:fixed;inset:0;z-index:0}
+.bg-hex{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 34px,rgba(255,194,0,.025) 34px,rgba(255,194,0,.025) 35px),repeating-linear-gradient(60deg,transparent,transparent 34px,rgba(255,194,0,.015) 34px,rgba(255,194,0,.015) 35px),repeating-linear-gradient(120deg,transparent,transparent 34px,rgba(255,194,0,.015) 34px,rgba(255,194,0,.015) 35px);animation:bgMove 30s linear infinite}
+@keyframes bgMove{from{transform:translate(0,0)}to{transform:translate(35px,35px)}}
+.bg-glow{position:absolute;width:600px;height:600px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-60%);background:radial-gradient(circle,rgba(180,20,0,.18) 0%,transparent 70%);animation:bgPulse 4s ease-in-out infinite}
+@keyframes bgPulse{0%,100%{opacity:.6;transform:translate(-50%,-60%) scale(1)}50%{opacity:1;transform:translate(-50%,-60%) scale(1.1)}}
+.scan{position:fixed;inset:0;z-index:1;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);pointer-events:none}
+
+/* APP */
+#app{position:relative;z-index:2;width:100%;height:100vh;max-width:480px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden}
+
+/* HEADER */
+header{padding:14px 16px 10px;border-bottom:1px solid var(--border);background:linear-gradient(to bottom,rgba(30,6,0,.9),transparent);flex-shrink:0}
+.hdr-top{display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;letter-spacing:6px;color:var(--gold);text-shadow:var(--glow-gold)}
+.logo-sub{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--dim);margin-top:1px}
+.arc{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,194,0,.3);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 15px rgba(255,194,0,.2),inset 0 0 10px rgba(255,194,0,.05)}
+.arc::before{content:'';position:absolute;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,rgba(0,207,255,.8),rgba(0,100,200,.4),transparent);box-shadow:0 0 15px rgba(0,207,255,.6);animation:arcP 2s ease-in-out infinite}
+@keyframes arcP{0%,100%{opacity:.7;transform:scale(.9)}50%{opacity:1;transform:scale(1.05)}}
+.arc::after{content:'';position:absolute;width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,207,255,.2);animation:arcS 4s linear infinite}
+@keyframes arcS{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.status-row{display:flex;justify-content:space-between;align-items:center;margin-top:7px;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim)}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);display:inline-block;margin-right:4px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ORB */
+.orb-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;position:relative}
+.orb-sys{position:relative;width:160px;height:160px;display:flex;align-items:center;justify-content:center}
+.ring{position:absolute;border-radius:50%;border-style:solid;animation:ringR linear infinite}
+.ring.r1{width:160px;height:160px;border-width:1px;border-color:rgba(255,194,0,.12);animation-duration:10s}
+.ring.r2{width:130px;height:130px;border-width:1px;border-color:rgba(255,194,0,.18);animation-duration:7s;animation-direction:reverse}
+.ring.r3{width:100px;height:100px;border-width:2px;border-color:rgba(204,26,0,.25);animation-duration:5s}
+@keyframes ringR{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.ring::after{content:'';position:absolute;width:7px;height:7px;border-radius:50%;top:-3.5px;left:50%;transform:translateX(-50%);background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.ring.r2::after{background:var(--red2);box-shadow:0 0 10px var(--red2)}
+.ring.r3::after{background:var(--blue);box-shadow:0 0 10px var(--blue);width:5px;height:5px;top:-2.5px}
+.orb{width:82px;height:82px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,194,0,.25),rgba(180,20,0,.3),rgba(5,0,0,.9));border:2px solid rgba(255,194,0,.35);box-shadow:0 0 30px rgba(255,194,0,.2),0 0 60px rgba(204,26,0,.15),inset 0 0 20px rgba(255,194,0,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;position:relative;z-index:5}
+.orb:active{transform:scale(.93)}
+.orb.listening{border-color:var(--red2);box-shadow:0 0 40px rgba(255,58,26,.6),inset 0 0 20px rgba(255,58,26,.12);animation:oL .7s infinite}
+.orb.thinking{border-color:var(--gold);animation:oT 1.5s ease-in-out infinite}
+.orb.speaking{border-color:var(--green);box-shadow:0 0 35px rgba(0,255,136,.4),inset 0 0 20px rgba(0,255,136,.08)}
+.orb.imaging{border-color:var(--purple);box-shadow:0 0 35px rgba(192,68,255,.5);animation:oL 1s infinite}
+@keyframes oL{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes oT{0%,100%{box-shadow:0 0 30px rgba(255,194,0,.2)}50%{box-shadow:0 0 50px rgba(255,194,0,.5),0 0 80px rgba(255,149,0,.3)}}
+.orb-emoji{font-size:30px;filter:drop-shadow(0 0 8px rgba(255,194,0,.5))}
+.orb-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dim);margin-top:6px;text-align:center}
+
+/* WAVE */
+.wf{display:flex;align-items:center;justify-content:center;gap:3px;height:26px;margin:2px 0;opacity:0;transition:opacity .3s}
+.wf.on{opacity:1}
+.wb{width:3px;border-radius:2px;height:4px;animation:wvA .8s ease-in-out infinite}
+.wb.g{background:var(--gold);box-shadow:0 0 4px var(--gold)}
+.wb.r{background:var(--red2);box-shadow:0 0 4px var(--red2)}
+@keyframes wvA{0%,100%{height:4px}50%{height:22px}}
+
+/* TABS */
+.tabs{display:flex;gap:5px;padding:6px 12px;flex-shrink:0}
+.tab{flex:1;padding:7px 4px;border-radius:8px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;cursor:pointer;transition:all .2s;text-align:center;border:1px solid rgba(255,194,0,.1);background:transparent;color:rgba(255,220,150,.3)}
+.tab.on{background:rgba(255,194,0,.1);border-color:rgba(255,194,0,.4);color:var(--gold);box-shadow:0 0 10px rgba(255,194,0,.15)}
+.tab.img-t{border-color:rgba(192,68,255,.1);color:rgba(192,68,255,.3)}
+.tab.img-t.on{background:rgba(192,68,255,.1);border-color:rgba(192,68,255,.4);color:var(--purple)}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:0 12px 5px;flex-shrink:0}
+.gb{background:rgba(255,194,0,.04);border:1px solid rgba(255,194,0,.1);border-radius:8px;padding:7px 3px;text-align:center;cursor:pointer;transition:all .2s}
+.gb:active{background:rgba(255,194,0,.14);border-color:var(--gold);transform:scale(.94)}
+.gb.ig{border-color:rgba(192,68,255,.12);background:rgba(192,68,255,.04)}
+.gb.ig:active{background:rgba(192,68,255,.18);border-color:var(--purple)}
+.gi{font-size:15px;display:block}
+.gl{font-size:8px;color:var(--dim);letter-spacing:.3px;margin-top:2px;display:block}
+
+/* TTS BAR */
+.tts-row{display:flex;align-items:center;gap:6px;padding:3px 14px;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);min-height:20px;flex-shrink:0}
+.tts-bars{display:flex;gap:2px;align-items:center}
+.tb{width:2px;height:8px;background:var(--gold);border-radius:1px;animation:wvA .6s ease-in-out infinite;display:none}
+.tts-row.on .tb{display:block}
+.tts-row.on .tb:nth-child(2){animation-delay:.1s}
+.tts-row.on .tb:nth-child(3){animation-delay:.2s}
+.tts-row.on .tb:nth-child(4){animation-delay:.3s}
+
+/* CHAT */
+.chat-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.chat{flex:1;overflow-y:auto;padding:6px 12px 8px;display:flex;flex-direction:column;gap:14px}
+.chat::-webkit-scrollbar{width:2px}
+.chat::-webkit-scrollbar-thumb{background:rgba(255,194,0,.2)}
+
+.msg{max-width:86%;animation:mIn .3s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.u{align-self:flex-end}
+.msg.a{align-self:flex-start}
+.bub{padding:9px 13px;border-radius:12px;font-size:13.5px;line-height:1.55;font-family:'Exo 2',sans-serif}
+.u .bub{background:rgba(204,26,0,.2);border:1px solid rgba(255,58,26,.3);color:#ffe0c0;border-bottom-right-radius:3px}
+.a .bub{background:rgba(255,194,0,.04);border:1px solid rgba(255,194,0,.15);color:var(--text);border-bottom-left-radius:3px;position:relative}
+.a .bub::before{content:'JARVIS';position:absolute;top:-17px;left:0;font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,194,0,.35);letter-spacing:2px}
+
+/* IMG MSG */
+.img-msg{align-self:flex-start;max-width:92%;animation:mIn .3s ease}
+.img-bub{background:rgba(192,68,255,.04);border:1px solid rgba(192,68,255,.2);border-radius:12px;border-bottom-left-radius:3px;overflow:hidden;position:relative}
+.img-bub::before{content:'JARVIS · GÖRSEL';position:absolute;top:-17px;left:0;font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(192,68,255,.45);letter-spacing:2px}
+.img-bub img{width:100%;display:block}
+.img-load{padding:20px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(192,68,255,.6);display:flex;flex-direction:column;align-items:center;gap:8px}
+.ispin{width:30px;height:30px;border-radius:50%;border:2px solid rgba(192,68,255,.2);border-top-color:var(--purple);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.img-acts{display:flex;gap:5px;padding:7px}
+.iact{flex:1;background:rgba(192,68,255,.08);border:1px solid rgba(192,68,255,.25);border-radius:6px;padding:6px;color:rgba(192,68,255,.75);font-family:'Share Tech Mono',monospace;font-size:8px;cursor:pointer;letter-spacing:1px;text-align:center}
+.iact:active{background:rgba(192,68,255,.2)}
+
+/* THINK */
+.think{display:flex;gap:6px;padding:10px 14px;align-self:flex-start}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:dp 1.2s infinite;box-shadow:0 0 6px var(--gold)}
+.dot:nth-child(2){animation-delay:.2s;background:var(--gold2)}
+.dot:nth-child(3){animation-delay:.4s;background:var(--red2);box-shadow:0 0 6px var(--red2)}
+@keyframes dp{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}
+
+/* EMPTY */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:6px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:10px;text-align:center;letter-spacing:1px}
+.empty .big{font-size:26px;margin-bottom:4px}
+
+/* INPUT */
+.inp-bar{flex-shrink:0;padding:8px 12px 16px;background:linear-gradient(to top,rgba(5,0,0,.95) 60%,transparent);display:flex;gap:6px;align-items:flex-end}
+.txtin{flex:1;background:rgba(255,194,0,.04);border:1px solid rgba(255,194,0,.2);border-radius:12px;padding:11px 13px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:14px;outline:none;resize:none;max-height:90px;min-height:42px;transition:border-color .2s;caret-color:var(--gold)}
+.txtin::placeholder{color:rgba(255,200,100,.2)}
+.txtin:focus{border-color:rgba(255,194,0,.4)}
+.txtin.im{border-color:rgba(192,68,255,.25);caret-color:var(--purple)}
+.txtin.im::placeholder{color:rgba(192,68,255,.25)}
+.ibtn{width:42px;height:42px;border-radius:10px;border:1px solid rgba(255,194,0,.22);background:rgba(255,194,0,.07);color:var(--gold);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.ibtn:active{transform:scale(.88);background:rgba(255,194,0,.18)}
+.ibtn.mic.rec{background:rgba(255,58,26,.2);border-color:var(--red2);color:var(--red2);animation:recP 1s infinite}
+@keyframes recP{0%,100%{box-shadow:0 0 0 0 rgba(255,58,26,.4)}50%{box-shadow:0 0 0 7px rgba(255,58,26,0)}}
+.ibtn.send{background:rgba(204,26,0,.2);border-color:var(--red);color:#fff}
+.ibtn.send.im{background:rgba(192,68,255,.18);border-color:var(--purple)}
+
+/* SETUP */
+.setup{position:fixed;inset:0;background:rgba(5,0,0,.97);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.sc{background:rgba(255,194,0,.02);border:1px solid rgba(255,194,0,.2);border-radius:16px;padding:22px 18px;width:100%;max-width:380px;text-align:center}
+.sc h2{font-family:'Orbitron',sans-serif;font-size:22px;letter-spacing:5px;color:var(--gold);text-shadow:var(--glow-gold);margin-bottom:5px}
+.fbadge{display:inline-block;background:rgba(0,255,136,.07);border:1px solid var(--green);color:var(--green);font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 12px;border-radius:20px;margin-bottom:14px;letter-spacing:2px}
+.sdesc{font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.6}
+.steps{text-align:left;margin:0 0 16px;display:flex;flex-direction:column;gap:11px}
+.step{display:flex;gap:10px;align-items:flex-start}
+.sn{background:rgba(255,194,0,.08);border:1px solid rgba(255,194,0,.25);border-radius:50%;width:23px;height:23px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:9px;color:var(--gold);flex-shrink:0}
+.st{font-size:11px;color:rgba(255,220,150,.75);line-height:1.5;padding-top:2px}
+.st a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(255,194,0,.3)}
+.st code{background:rgba(255,194,0,.08);padding:1px 5px;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:10px}
+.sinp{width:100%;background:rgba(0,0,0,.5);border:1px solid rgba(255,194,0,.25);border-radius:8px;padding:11px;color:var(--gold);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;margin-bottom:8px;text-align:center}
+.sinp:focus{border-color:var(--gold)}
+.sbtn{width:100%;background:rgba(204,26,0,.2);border:1px solid var(--red);border-radius:8px;padding:12px;color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:2px;cursor:pointer}
+.sbtn:active{background:rgba(204,26,0,.4)}
+.snote{margin-top:10px;font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;line-height:1.7}
+
+/* MIC PERMISSION MODAL */
+.mic-modal{position:fixed;inset:0;background:rgba(5,0,0,.92);z-index:150;display:none;align-items:center;justify-content:center;padding:20px}
+.mic-modal.show{display:flex}
+.mic-card{background:rgba(255,194,0,.03);border:1px solid rgba(255,194,0,.25);border-radius:14px;padding:24px 18px;width:100%;max-width:340px;text-align:center}
+.mic-card h3{font-family:'Orbitron',sans-serif;font-size:16px;letter-spacing:3px;color:var(--gold);margin-bottom:8px}
+.mic-card p{font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:18px}
+.mic-card .mic-big{font-size:48px;display:block;margin-bottom:12px}
+.mic-btns{display:flex;gap:8px}
+.mic-btn{flex:1;padding:11px;border-radius:8px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer}
+.mic-btn.allow{background:rgba(0,255,136,.15);border:1px solid var(--green);color:var(--green)}
+.mic-btn.deny{background:rgba(255,58,26,.1);border:1px solid rgba(255,58,26,.3);color:rgba(255,150,100,.6)}
+
+/* TOAST */
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(204,26,0,.15);border:1px solid rgba(255,58,26,.35);color:#ffaa88;padding:9px 16px;border-radius:8px;font-family:'Share Tech Mono',monospace;font-size:10px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;max-width:280px}
+.toast.show{opacity:1}
+.c{position:fixed;width:18px;height:18px;border-color:rgba(255,194,0,.2);border-style:solid;z-index:3}
+.c.tl{top:5px;left:5px;border-width:1px 0 0 1px}
+.c.tr{top:5px;right:5px;border-width:1px 1px 0 0}
+.c.bl{bottom:5px;left:5px;border-width:0 0 1px 1px}
+.c.br{bottom:5px;right:5px;border-width:0 1px 1px 0}
+</style>
+</head>
+<body>
+<div class="bg-layer"><div class="bg-hex"></div><div class="bg-glow"></div></div>
+<div class="scan"></div>
+<div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
+
+<!-- MİKROFON İZİN MODALI -->
+<div class="mic-modal" id="micModal">
+  <div class="mic-card">
+    <span class="mic-big">🎙️</span>
+    <h3>MİKROFON İZNİ</h3>
+    <p>JARVIS sesli komutlarınızı duyabilmek için mikrofon iznine ihtiyaç duyuyor.<br><br>
+    Açılan pencerede <strong style="color:var(--gold)">"İzin Ver"</strong> veya <strong style="color:var(--gold)">"Allow"</strong> seçeneğine basın.</p>
+    <div class="mic-btns">
+      <button class="mic-btn allow" onclick="requestMic()">🎤 İZİN VER</button>
+      <button class="mic-btn deny" onclick="closeMicModal()">Şimdi Değil</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div class="setup" id="setup">
+  <div class="sc">
+    <h2>JARVIS</h2>
+    <div class="fbadge">✅ TAMAMEN ÜCRETSİZ</div>
+    <p class="sdesc">Iron Man'in AI asistanı. Sesli komut · Resim üretimi · Tam zeka</p>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="st"><a href="https://console.groq.com" target="_blank">console.groq.com</a> → Google ile giriş</div></div>
+      <div class="step"><div class="sn">2</div><div class="st">Sol menü → <code>API Keys</code> → <code>Create API Key</code></div></div>
+      <div class="step"><div class="sn">3</div><div class="st">Anahtarı kopyala — <code>gsk_</code> ile başlar</div></div>
+      <div class="step"><div class="sn">4</div><div class="st">Aşağıya yapıştır → Başlat! 🚀</div></div>
+    </div>
+    <input class="sinp" type="password" id="apiIn" placeholder="gsk_...">
+    <button class="sbtn" onclick="initApp()">⚡ JARVIS'İ BAŞLAT</button>
+    <p class="snote">🔒 Anahtar yalnızca bu cihazda saklanır<br>🎨 Resim üretimi ücretsiz — API gerekmez<br>🎤 Sesli komut için mikrofon izni gerekir</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="app">
+  <header>
+    <div class="hdr-top">
+      <div>
+        <div class="logo">JARVIS</div>
+        <div class="logo-sub">VOICE · VISION · INTELLIGENCE</div>
+      </div>
+      <div class="arc"></div>
+    </div>
+    <div class="status-row">
+      <span><span class="sdot"></span>AKTİF</span>
+      <span id="clock">--:--:--</span>
+      <span>GROQ · FLUX AI</span>
+    </div>
+  </header>
+
+  <div class="orb-wrap">
+    <div class="orb-sys">
+      <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+      <div class="orb" id="orb" onclick="orbTap()">
+        <span class="orb-emoji" id="orbEmoji">🤖</span>
+      </div>
+    </div>
+    <div class="orb-label" id="orbLabel">DOKUNARAK SESLİ KOMUT VER</div>
+  </div>
+
+  <div class="wf" id="wf">
+    <div class="wb g" style="animation-delay:0s"></div>
+    <div class="wb r" style="animation-delay:.1s"></div>
+    <div class="wb g" style="animation-delay:.2s"></div>
+    <div class="wb r" style="animation-delay:.3s"></div>
+    <div class="wb g" style="animation-delay:.4s"></div>
+    <div class="wb r" style="animation-delay:.5s"></div>
+    <div class="wb g" style="animation-delay:.6s"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" id="chatTab" onclick="setMode('chat')">💬 SOHBET</button>
+    <button class="tab img-t" id="imgTab" onclick="setMode('image')">🎨 RESİM</button>
+    <button class="tab" id="voiceTab" onclick="orbTap()">🎤 SES</button>
+  </div>
+
+  <div class="grid">
+    <div class="gb" onclick="qp('Beni motive et, güçlü konuş')"><span class="gi">⚡</span><span class="gl">MOTİVE</span></div>
+    <div class="gb" onclick="qp('İlginç bir bilgi ver')"><span class="gi">🧠</span><span class="gl">BİLGİ</span></div>
+    <div class="gb" onclick="qp('Python kodu örneği ver ve açıkla')"><span class="gi">💻</span><span class="gl">KOD</span></div>
+    <div class="gb" onclick="qp('Komik bir şaka anlat')"><span class="gi">😄</span><span class="gl">ŞAKA</span></div>
+    <div class="gb ig" onclick="setMode('image');qp2('iron man suit futuristic space cinematic ultra detailed')"><span class="gi">🦾</span><span class="gl">IRONMAN</span></div>
+    <div class="gb ig" onclick="setMode('image');qp2('cyberpunk city night neon rain ultra detailed')"><span class="gi">🌆</span><span class="gl">ŞEHİR</span></div>
+    <div class="gb ig" onclick="setMode('image');qp2('Turkey Cappadocia hot air balloons sunrise beautiful')"><span class="gi">🎈</span><span class="gl">TÜRKİYE</span></div>
+    <div class="gb" onclick="clearAll()"><span class="gi">🗑️</span><span class="gl">TEMİZLE</span></div>
+  </div>
+
+  <div class="tts-row" id="ttsRow">
+    <div class="tts-bars"><div class="tb"></div><div class="tb"></div><div class="tb"></div><div class="tb"></div></div>
+    <span id="ttsTxt"></span>
+  </div>
+
+  <div class="chat-wrap">
+    <div class="chat" id="chat">
+      <div class="empty" id="empty">
+        <div class="big">🤖</div>
+        <div>JARVIS HAZIR</div>
+        <div>Komutunuzu bekliyor...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="inp-bar">
+    <textarea class="txtin" id="inp" placeholder="Mesajınızı yazın..." rows="1"
+      onkeydown="onKey(event)" oninput="resize(this)"></textarea>
+    <button class="ibtn mic" id="micBtn" onclick="orbTap()">🎤</button>
+    <button class="ibtn send" id="sendBtn" onclick="go()">➤</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────
+let apiKey = '';
+let history = [];
+let mode = 'chat';
+let recording = false;
+let rec = null;
+let micGranted = false;
+let voicesLoaded = false;
+
+// ── CLOCK ──────────────────────────────────────────
+setInterval(()=>{ document.getElementById('clock').textContent = new Date().toLocaleTimeString('tr-TR'); }, 1000);
+
+// ── INIT ───────────────────────────────────────────
+function initApp() {
+  const k = document.getElementById('apiIn').value.trim();
+  if (!k.startsWith('gsk_') && !k.startsWith('gsk-')) {
+    toast('❌ Geçersiz anahtar. gsk_ ile başlamalı.');
+    return;
+  }
+  apiKey = k;
+  localStorage.setItem('jv_key', k);
+  document.getElementById('setup').style.display = 'none';
+  addAI('⚡ Merhaba Efendim! Ben JARVIS.\n\n🎤 Sesli komut için orb\'a veya SES sekmesine dokunun\n🎨 Resim için RESİM sekmesini kullanın\n\nNasıl yardımcı olabilirim?');
+  // Pre-load voices
+  loadVoices();
+}
+
+window.onload = () => {
+  const s = localStorage.getItem('jv_key');
+  if (s && (s.startsWith('gsk_') || s.startsWith('gsk-'))) {
+    apiKey = s;
+    document.getElementById('setup').style.display = 'none';
+    addAI('⚡ Tekrar hoş geldiniz Efendim! JARVIS hazır.');
+  }
+  loadVoices();
+  checkMicPermission();
+};
+
+// ── VOICES (preload for TTS) ────────────────────────
+function loadVoices() {
+  if ('speechSynthesis' in window) {
+    const load = () => {
+      const vs = speechSynthesis.getVoices();
+      if (vs.length > 0) voicesLoaded = true;
+    };
+    speechSynthesis.onvoiceschanged = load;
+    load();
+    // Force load on some browsers
+    setTimeout(load, 500);
+    setTimeout(load, 1500);
+  }
+}
+
+// ── MIC PERMISSION ─────────────────────────────────
+async function checkMicPermission() {
+  if (!navigator.permissions) return;
+  try {
+    const result = await navigator.permissions.query({ name: 'microphone' });
+    if (result.state === 'granted') {
+      micGranted = true;
+    }
+    result.onchange = () => {
+      micGranted = result.state === 'granted';
+    };
+  } catch(e) {}
+}
+
+function showMicModal() {
+  document.getElementById('micModal').classList.add('show');
+}
+function closeMicModal() {
+  document.getElementById('micModal').classList.remove('show');
+}
+
+async function requestMic() {
+  closeMicModal();
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    micGranted = true;
+    stream.getTracks().forEach(t => t.stop());
+    toast('✅ Mikrofon izni verildi!');
+    setTimeout(() => startRec(), 500);
+  } catch(e) {
+    toast('❌ Mikrofon izni reddedildi. Tarayıcı ayarlarından verin.');
+  }
+}
+
+// ── ORB TAP ────────────────────────────────────────
+function orbTap() {
+  if (recording) { stopRec(); return; }
+  if (!apiKey) { toast('Önce API anahtarı girin'); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    toast('Ses tanıma desteklenmiyor. Yazarak kullanın.');
+    return;
+  }
+
+  if (!micGranted) {
+    showMicModal();
+    return;
+  }
+  startRec();
+}
+
+// ── SPEECH RECOGNITION ─────────────────────────────
+function startRec() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Ses tanıma yok. Chrome kullanın.'); return; }
+
+  try {
+    rec = new SR();
+    rec.lang = 'tr-TR';
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+
+    rec.onstart = () => {
+      recording = true;
+      micGranted = true;
+      document.getElementById('micBtn').classList.add('rec');
+      setOrb('listening');
+    };
+
+    rec.onresult = (e) => {
+      const t = e.results[0][0].transcript;
+      document.getElementById('inp').value = t;
+      stopRec();
+      go();
+    };
+
+    rec.onerror = (e) => {
+      stopRec();
+      if (e.error === 'not-allowed') {
+        micGranted = false;
+        showMicModal();
+      } else if (e.error === 'no-speech') {
+        toast('Ses algılanamadı, tekrar deneyin');
+      } else if (e.error === 'network') {
+        toast('Ağ hatası. İnternet bağlantınızı kontrol edin.');
+      } else {
+        toast('Ses hatası: ' + e.error);
+      }
+    };
+
+    rec.onend = () => { if (recording) stopRec(); };
+    rec.start();
+
+  } catch(e) {
+    toast('Mikrofon başlatılamadı: ' + e.message);
+    setOrb('');
+  }
+}
+
+function stopRec() {
+  recording = false;
+  document.getElementById('micBtn').classList.remove('rec');
+  try { if (rec) rec.stop(); } catch(e) {}
+  rec = null;
+  if (!document.getElementById('think')) setOrb('');
+}
+
+// ── TTS (with fallback and retry) ──────────────────
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+
+  // Cancel any ongoing speech
+  speechSynthesis.cancel();
+
+  const clean = text
+    .replace(/[^\w\s.,!?;:()\-\nğüşıöçĞÜŞİÖÇ]/g, '')
+    .replace(/\n/g, ' ')
+    .substring(0, 500)
+    .trim();
+
+  if (!clean) return;
+
+  const doSpeak = () => {
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang = 'tr-TR';
+    u.rate = 1.05;
+    u.pitch = 0.85;
+    u.volume = 1;
+
+    // Pick best voice
+    const vs = speechSynthesis.getVoices();
+    const trV = vs.find(v => v.lang === 'tr-TR') ||
+                vs.find(v => v.lang.startsWith('tr')) ||
+                vs.find(v => v.lang.startsWith('en-US')) ||
+                vs.find(v => v.lang.startsWith('en')) ||
+                (vs.length > 0 ? vs[0] : null);
+    if (trV) u.voice = trV;
+
+    u.onstart = () => {
+      setOrb('speaking');
+      document.getElementById('ttsRow').classList.add('on');
+      document.getElementById('ttsTxt').textContent = 'SES ÇIKIŞI AKTİF';
+    };
+
+    u.onend = () => {
+      setOrb('');
+      document.getElementById('ttsRow').classList.remove('on');
+      document.getElementById('ttsTxt').textContent = '';
+    };
+
+    u.onerror = (e) => {
+      setOrb('');
+      document.getElementById('ttsRow').classList.remove('on');
+      document.getElementById('ttsTxt').textContent = '';
+    };
+
+    speechSynthesis.speak(u);
+
+    // Android Chrome fix: resume if paused
+    setTimeout(() => {
+      if (speechSynthesis.paused) speechSynthesis.resume();
+    }, 100);
+  };
+
+  // Wait for voices if not loaded
+  if (speechSynthesis.getVoices().length === 0) {
+    setTimeout(doSpeak, 800);
+  } else {
+    doSpeak();
+  }
+}
+
+// ── ORB STATE ──────────────────────────────────────
+function setOrb(state) {
+  const o = document.getElementById('orb');
+  const e = document.getElementById('orbEmoji');
+  const l = document.getElementById('orbLabel');
+  const w = document.getElementById('wf');
+  o.className = 'orb ' + state;
+  const map = {
+    listening: ['🎙️', 'DİNLİYORUM... KONUŞUN', true],
+    thinking:  ['🧠', 'DÜŞÜNÜYORUM...', false],
+    speaking:  ['🔊', 'KONUŞUYORUM...', true],
+    imaging:   ['🎨', 'GÖRSEL OLUŞTURULUYOR...', false],
+    '':        ['🤖', 'DOKUNARAK SESLİ KOMUT VER', false],
+  };
+  const [em, lb, wv] = map[state] || map[''];
+  e.textContent = em;
+  l.textContent = lb;
+  w.classList.toggle('on', wv);
+}
+
+// ── MODE ───────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('chatTab').classList.toggle('on', m === 'chat');
+  document.getElementById('imgTab').classList.toggle('on', m === 'image');
+  const inp = document.getElementById('inp');
+  const sb = document.getElementById('sendBtn');
+  if (m === 'image') {
+    inp.placeholder = '🎨 Resim açıklaması yaz...';
+    inp.classList.add('im');
+    sb.classList.add('im');
+  } else {
+    inp.placeholder = 'Mesajınızı yazın...';
+    inp.classList.remove('im');
+    sb.classList.remove('im');
+  }
+}
+
+// ── MESSAGES ───────────────────────────────────────
+function rmEmpty() { const e = document.getElementById('empty'); if (e) e.remove(); }
+function scrollDown() { const c = document.getElementById('chat'); c.scrollTop = c.scrollHeight; }
+
+function addUser(txt) {
+  rmEmpty();
+  const d = document.createElement('div'); d.className = 'msg u';
+  d.innerHTML = `<div class="bub">${esc(txt)}</div>`;
+  document.getElementById('chat').appendChild(d); scrollDown();
+}
+
+function addAI(txt) {
+  rmEmpty();
+  const d = document.createElement('div'); d.className = 'msg a';
+  d.innerHTML = `<div class="bub">${txt.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div>`;
+  document.getElementById('chat').appendChild(d); scrollDown();
+}
+
+function esc(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function showThink() {
+  const d = document.createElement('div'); d.className = 'think'; d.id = 'think';
+  d.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  document.getElementById('chat').appendChild(d); scrollDown();
+}
+function rmThink() { const d = document.getElementById('think'); if (d) d.remove(); }
+
+// ── IMAGE GENERATION ───────────────────────────────
+const trMap = {
+  'araba':'car','köpek':'dog','kedi':'cat','ev':'house','dağ':'mountain',
+  'deniz':'sea','gökyüzü':'sky','gece':'night','orman':'forest','şehir':'city',
+  'güzel':'beautiful','büyük':'big','ejderha':'dragon','uzay':'space','robot':'robot',
+  'çiçek':'flower','ağaç':'tree','aslan':'lion','kaplan':'tiger','at':'horse',
+  'uçak':'airplane','gemi':'ship','yıldız':'star','ay':'moon','güneş':'sun',
+  'kar':'snow','yağmur':'rain','sanat':'art','dans':'dance','savaş':'battle',
+  'kadın':'woman','erkek':'man','çocuk':'child','şato':'castle','köy':'village'
+};
+
+function trEN(t) {
+  let r = t.toLowerCase();
+  for (const [k, v] of Object.entries(trMap)) r = r.replace(new RegExp(k, 'g'), v);
+  return r;
+}
+
+function genImg(prompt) {
+  rmEmpty();
+  setOrb('imaging');
+  const en = trEN(prompt);
+  const seed = Math.floor(Math.random() * 99999);
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(en + ', highly detailed, 4k, masterpiece')}?width=512&height=512&seed=${seed}&nologo=true`;
+
+  const wrap = document.createElement('div'); wrap.className = 'img-msg';
+  const bub = document.createElement('div'); bub.className = 'img-bub';
+  bub.innerHTML = `<div class="img-load"><div class="ispin"></div><div>GÖRSEL OLUŞTURULUYOR...</div><div style="font-size:8px;opacity:.5">${prompt.substring(0,35)}...</div></div>`;
+  wrap.appendChild(bub);
+  document.getElementById('chat').appendChild(wrap); scrollDown();
+
+  const img = new Image();
+  img.onload = () => {
+    setOrb('');
+    bub.innerHTML = '';
+    img.style.cssText = 'width:100%;display:block';
+    bub.appendChild(img);
+    const acts = document.createElement('div'); acts.className = 'img-acts';
+    acts.innerHTML = `<button class="iact" onclick="window.open('${url}','_blank')">⬇ İNDİR</button><button class="iact" onclick="genImg('${prompt.replace(/'/g,"\\'")}')">🔄 YENİLE</button>`;
+    bub.appendChild(acts); scrollDown();
+  };
+  img.onerror = () => {
+    setOrb('');
+    bub.innerHTML = '<div style="padding:12px;color:rgba(255,100,100,.7);font-family:Share Tech Mono,monospace;font-size:10px">⚠️ Görsel yüklenemedi. Tekrar deneyin.</div>';
+  };
+  img.src = url;
+}
+
+// ── SEND ───────────────────────────────────────────
+function go() {
+  const inp = document.getElementById('inp');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  inp.value = ''; resize(inp);
+
+  if (mode === 'image') {
+    addUser('🎨 ' + txt);
+    genImg(txt);
+    return;
+  }
+
+  if (!apiKey) { toast('API anahtarı gerekli'); return; }
+  addUser(txt);
+  history.push({ role: 'user', content: txt });
+  showThink(); setOrb('thinking');
+
+  fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'system',
+          content: `Sen JARVIS'sin — Tony Stark'ın kişisel AI asistanısın. Zeki, sadık, verimli. Kısa ve net yanıt ver (mobil için). Türkçe konuş. Kullanıcıya "Efendim" de. Resim için "🎨 Resim sekmesini kullanın" de. Emoji kullan ama abartma.`
+        },
+        ...history
+      ]
+    })
+  })
+  .then(r => {
+    if (!r.ok) return r.json().then(e => { throw new Error(e.error?.message || 'API Hatası ' + r.status); });
+    return r.json();
+  })
+  .then(d => {
+    const rep = d.choices[0].message.content;
+    rmThink(); setOrb(''); addAI(rep);
+    history.push({ role: 'assistant', content: rep });
+    if (history.length > 20) history = history.slice(-16);
+    speak(rep);
+  })
+  .catch(err => {
+    rmThink(); setOrb('');
+    const m = err.message.includes('401') ? '❌ Geçersiz API anahtarı' :
+              err.message.includes('429') ? '⏳ Çok istek. Bekleyin.' :
+              err.message.includes('fetch') ? '🌐 İnternet bağlantısı yok.' :
+              '⚠️ ' + err.message;
+    toast(m); addAI(m);
+  });
+}
+
+function qp(p) { setMode('chat'); document.getElementById('inp').value = p; go(); }
+function qp2(p) { document.getElementById('inp').value = p; go(); }
+
+function clearAll() {
+  history = [];
+  document.getElementById('chat').innerHTML = '<div class="empty" id="empty"><div class="big">🤖</div><div>JARVIS HAZIR</div><div>Komutunuzu bekliyor...</div></div>';
+  speechSynthesis && speechSynthesis.cancel();
+  setOrb('');
+}
+
+function toast(msg, d = 3500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), d);
+}
+
+function onKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); } }
+function resize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 90) + 'px'; }
+</script>
+</body>
+</html>
